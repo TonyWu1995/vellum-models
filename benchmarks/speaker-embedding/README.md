@@ -30,14 +30,17 @@ Clip names become `<speaker>-<recording>-<n>`. A CN-Celeb recording is a speaker
 Requirements: make, Node 24 or later, Python 3, curl. The results below came from Windows 11 on an AMD Ryzen 7 3800X with 32 GB of RAM, CPU only, 2 threads per model.
 
 ```sh
-make                       # everything: download, convert, embed, score into results/
-make setup                 # only install the Node and Python packages
-make models                # only download the models
-make results/voxceleb.txt  # only the English run
-make clean                 # delete the downloads and everything made from them
+make           # everything, in this order:
+make setup     # install the Node and Python packages
+make models    # download the models
+make cnceleb   # download and convert the Chinese clips
+make voxceleb  # download and convert the English clips
+make embed     # make an embedding for every clip with every model
+make score     # write results/
+make clean     # delete everything downloaded or made
 ```
 
-`make` skips what is already done, so it can be stopped and run again. Everything it downloads or makes goes in `data/`, `models/`, `node_modules/` and `venv/`, none of which is committed. A full run downloads about 4 GB and takes about two hours. Embedding with the larger models takes the longest.
+Everything downloaded or made goes in `data/`, `models/`, `node_modules/` and `venv/`, none of which is committed. A full run downloads about 4 GB and takes about two hours. On macOS and Linux, run `make PYTHON=venv/bin/python`.
 
 To try another model from [the sherpa-onnx collection](https://huggingface.co/csukuangfj/speaker-embedding-models), add its file name without `.onnx` to `MODELS` (and `EN_MODELS` for English) in the `Makefile`.
 

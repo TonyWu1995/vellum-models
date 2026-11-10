@@ -10,17 +10,6 @@ threshold	missed	wrong
 0.75	65.6%	0.0%
 0.8	77.7%	0.0%
 
-cnceleb-3dspeaker_speech_eres2netv2_sv_zh-cn_16k-common.json
-891 voiceprints, 162 speakers, 3861 same / 391242 different pairs, EER 1.8% at 0.40
-threshold	missed	wrong
-0.4	2.0%	1.6%
-0.5	6.3%	0.1%
-0.6	17.7%	0.0%
-0.65	28.7%	0.0%
-0.7	41.1%	0.0%
-0.75	54.8%	0.0%
-0.8	69.1%	0.0%
-
 cnceleb-3dspeaker_speech_eres2net_base_200k_sv_zh-cn_16k-common.json
 891 voiceprints, 162 speakers, 3861 same / 391242 different pairs, EER 3.5% at 0.37
 threshold	missed	wrong
@@ -43,6 +32,17 @@ threshold	missed	wrong
 0.75	89.2%	0.0%
 0.8	94.7%	0.0%
 
+cnceleb-3dspeaker_speech_eres2netv2_sv_zh-cn_16k-common.json
+891 voiceprints, 162 speakers, 3861 same / 391242 different pairs, EER 1.8% at 0.40
+threshold	missed	wrong
+0.4	2.0%	1.6%
+0.5	6.3%	0.1%
+0.6	17.7%	0.0%
+0.65	28.7%	0.0%
+0.7	41.1%	0.0%
+0.75	54.8%	0.0%
+0.8	69.1%	0.0%
+
 cnceleb-nemo_en_titanet_large.json
 891 voiceprints, 162 speakers, 3861 same / 391242 different pairs, EER 10.7% at 0.42
 threshold	missed	wrong
@@ -54,16 +54,16 @@ threshold	missed	wrong
 0.75	77.9%	0.0%
 0.8	89.6%	0.0%
 
-cnceleb-wespeaker_zh_cnceleb_resnet34_LM.json
-891 voiceprints, 162 speakers, 3861 same / 391242 different pairs, EER 18.7% at 0.45
+cnceleb-wespeaker_en_voxceleb_resnet293_LM.json
+891 voiceprints, 162 speakers, 3861 same / 391242 different pairs, EER 35.3% at 0.84
 threshold	missed	wrong
-0.4	13.9%	27.6%
-0.5	22.8%	12.1%
-0.6	35.0%	3.4%
-0.65	44.7%	1.4%
-0.7	55.9%	0.4%
-0.75	65.7%	0.1%
-0.8	73.6%	0.0%
+0.4	0.0%	98.8%
+0.5	0.2%	96.3%
+0.6	1.9%	89.4%
+0.65	3.4%	83.2%
+0.7	7.0%	74.1%
+0.75	15.1%	61.9%
+0.8	26.2%	47.0%
 
 cnceleb-wespeaker_en_voxceleb_resnet34_LM.json
 891 voiceprints, 162 speakers, 3861 same / 391242 different pairs, EER 32.4% at 0.79
@@ -76,13 +76,13 @@ threshold	missed	wrong
 0.75	25.6%	43.2%
 0.8	35.3%	29.0%
 
-cnceleb-wespeaker_en_voxceleb_resnet293_LM.json
-891 voiceprints, 162 speakers, 3861 same / 391242 different pairs, EER 35.3% at 0.84
+cnceleb-wespeaker_zh_cnceleb_resnet34_LM.json
+891 voiceprints, 162 speakers, 3861 same / 391242 different pairs, EER 18.7% at 0.45
 threshold	missed	wrong
-0.4	0.0%	98.8%
-0.5	0.2%	96.3%
-0.6	1.9%	89.4%
-0.65	3.4%	83.2%
-0.7	7.0%	74.1%
-0.75	15.1%	61.9%
-0.8	26.2%	47.0%
+0.4	13.9%	27.6%
+0.5	22.8%	12.1%
+0.6	35.0%	3.4%
+0.65	44.7%	1.4%
+0.7	55.9%	0.4%
+0.75	65.7%	0.1%
+0.8	73.6%	0.0%
