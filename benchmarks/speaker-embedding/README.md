@@ -20,33 +20,40 @@ The audio is not in this repository. Get it yourself:
 
 | Set | Language | What was used | Where |
 | --- | --- | --- | --- |
-| CN-Celeb (v2) eval | Chinese | 2365 clips, 195 speakers (162 have voiceprints from two recordings or more), 11 genres (interview, speech, singing, vlog, live broadcast, ...) | [OpenSLR 82](https://openslr.org/82/), `cn-celeb_v2.tar.gz` (22 GB). `CN-Celeb_flac/eval/` comes first in the archive, so `make` streams it and stops after the eval folder. Our download stalled partway, so we used the part that arrived. |
+| CN-Celeb (v2) eval | Chinese | 2365 clips, 195 speakers (162 have voiceprints from two recordings or more), 11 genres (interview, speech, singing, vlog, live broadcast, ...) | [OpenSLR 82](https://openslr.org/82/), `cn-celeb_v2.tar.gz` (22 GB). `CN-Celeb_flac/eval/` comes first in the archive, so `make download` reads the archive only up to the end of that folder. Our download stalled partway, so we used the part that arrived. |
 | VoxCeleb1 test | English | all 4874 clips, 40 speakers | The official download needs a login; the same files are in the [Codec-SUPERB/Voxceleb1_test_original](https://huggingface.co/datasets/Codec-SUPERB/Voxceleb1_test_original) parquet files (1.3 GB). |
 
 Clip names become `<speaker>-<recording>-<n>`. A CN-Celeb recording is a speaker's genre session (`id00800-interview-02`); a VoxCeleb recording is one video.
 
 ## Run it
 
-Requirements: make, Node 24 or later, Python 3, curl. The results below came from Windows 11 on an AMD Ryzen 7 3800X with 32 GB of RAM, CPU only, 2 threads per model.
+Requirements: make and Node 24 or later. The results below came from Windows 11 on an AMD Ryzen 7 3800X with 32 GB of RAM, CPU only, 2 threads per model.
 
 ```sh
-make           # everything, in this order:
-make setup     # install the Node and Python packages
-make models    # download the models
-make cnceleb   # download and convert the Chinese clips
-make voxceleb  # download and convert the English clips
-make embed     # make an embedding for every clip with every model
-make score     # write results/
-make clean     # delete everything downloaded or made
+make              # all the steps below, in order
+make install      # install the packages
+make download     # download the models and the Chinese and English clips
+make prepare      # convert every clip to the 16 kHz audio the models read
+make voiceprints  # every model makes an embedding of every clip
+make score        # compare them and write results/
+make clean        # delete everything downloaded or made
 ```
 
-Everything downloaded or made goes in `data/`, `models/`, `node_modules/` and `venv/`, none of which is committed. A full run downloads about 4 GB and takes about two hours. On macOS and Linux, run `make PYTHON=venv/bin/python`.
+| File | Does |
+| --- | --- |
+| `models.json` | the models to test, and in which languages |
+| `download.mjs` | downloads into `data/`, skipping what is already there |
+| `prepare.mjs` | converts the clips into `data/chinese/` and `data/english/` |
+| `voiceprints.mjs` | writes `data/voiceprints/<language>-<model>.json`, skipping what is already there |
+| `score.mjs` | scores each of those files and writes `results/chinese.txt` and `results/english.txt` |
 
-To try another model from [the sherpa-onnx collection](https://huggingface.co/csukuangfj/speaker-embedding-models), add its file name without `.onnx` to `MODELS` (and `EN_MODELS` for English) in the `Makefile`.
+Everything downloaded or made goes in `data/`, which is not committed. A full run downloads about 4 GB and takes about two hours, most of it in `make voiceprints`.
+
+To try another model from [the sherpa-onnx collection](https://huggingface.co/csukuangfj/speaker-embedding-models), add it to `models.json`.
 
 ## Results (2026-11-10)
 
-The full `score.mjs` output for every model, with each threshold, is in [`results/`](results) (`cnceleb.txt`, `voxceleb.txt`), and the embedding times are in `results/timing.txt`.
+The full `score.mjs` output for every model, with each threshold, is in [`results/`](results) (`chinese.txt`, `english.txt`), and how long each model took is in `results/timing.txt`.
 
 ### Chinese: CN-Celeb
 

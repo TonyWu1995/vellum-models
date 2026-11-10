@@ -1,7 +1,7 @@
-// Scores embeddings the way Vellum matches speakers: node score.mjs <embeddings.json>...
+// Scores every model the way Vellum matches speakers and writes results/<language>.txt.
 // A clip is named <speaker>-<recording...>-<n>. A voiceprint averages one recording's clips until they reach 10 s,
 // and only voiceprints from different recordings are compared, as Vellum compares a new transcript with earlier ones.
-import { readFileSync } from 'node:fs'
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 
 const MIN_SECONDS = 10
 const THRESHOLDS = [0.4, 0.5, 0.6, 0.65, 0.7, 0.75, 0.8]
@@ -73,21 +73,32 @@ if (equalErrorRate({ same: [0.9, 0.8], different: [0.1, 0.2] }).rate !== 0) {
 }
 
 const percent = (x) => `${(x * 100).toFixed(1)}%`
-for (const file of process.argv.slice(2)) {
-  const prints = voiceprints(JSON.parse(readFileSync(file, 'utf8')))
+
+function report(file) {
+  const prints = voiceprints(JSON.parse(readFileSync(`data/voiceprints/${file}`, 'utf8')))
   const scores = pairScores(prints)
   const eer = equalErrorRate(scores)
   const speakers = new Set(prints.map((p) => p.speaker)).size
-  console.log(`\n${file.split(/[\\/]/).pop()}`)
-  console.log(
+  const lines = [
+    '',
+    file.replace('.json', ''),
     `${prints.length} voiceprints, ${speakers} speakers, ` +
       `${scores.same.length} same / ${scores.different.length} different pairs, ` +
-      `EER ${percent(eer.rate)} at ${eer.threshold.toFixed(2)}`
-  )
-  console.log('threshold\tmissed\twrong')
+      `EER ${percent(eer.rate)} at ${eer.threshold.toFixed(2)}`,
+    'threshold\tmissed\twrong'
+  ]
   for (const threshold of THRESHOLDS) {
     const missed = percent(missRate(scores.same, threshold))
     const wrong = percent(wrongRate(scores.different, threshold))
-    console.log(`${threshold}\t${missed}\t${wrong}`)
+    lines.push(`${threshold}\t${missed}\t${wrong}`)
   }
+  return lines.join('\n')
+}
+
+mkdirSync('results', { recursive: true })
+for (const language of ['chinese', 'english']) {
+  const files = readdirSync('data/voiceprints').filter((f) => f.startsWith(`${language}-`))
+  const text = files.map(report).join('\n') + '\n'
+  writeFileSync(`results/${language}.txt`, text)
+  console.log(text)
 }
