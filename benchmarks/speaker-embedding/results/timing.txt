@@ -1,0 +1,16 @@
+# Time for make voiceprints: all clips, 9 models running at once (CN-Celeb) / 3 at once (VoxCeleb), AMD Ryzen 7 3800X, 2 threads each
+## Chinese (CN-Celeb)
+eres2net-base-200k done in 1091 s
+eres2net-large done in 2570 s
+eres2netv2 done in 2085 s
+campplus done in 630 s
+titanet-large done in 1250 s
+wespeaker-resnet293-voxceleb done in 3677 s
+wespeaker-resnet34-voxceleb done in 897 s
+wespeaker-resnet34-cnceleb done in 720 s
+## English (VoxCeleb1)
+eres2net-base-200k done in 1762 s
+eres2netv2 done in 3413 s
+campplus done in 762 s
+## Stopped
+wespeaker-samresnet100-voxblink2: not finished after 97 min, 1.0-1.5 GB RAM

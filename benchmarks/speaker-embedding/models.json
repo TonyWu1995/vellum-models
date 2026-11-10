@@ -1,0 +1,42 @@
+[
+  {
+    "id": "campplus",
+    "file": "3dspeaker_speech_campplus_sv_zh_en_16k-common_advanced.onnx",
+    "languages": ["chinese", "english"]
+  },
+  {
+    "id": "eres2netv2",
+    "file": "3dspeaker_speech_eres2netv2_sv_zh-cn_16k-common.onnx",
+    "languages": ["chinese", "english"]
+  },
+  {
+    "id": "eres2net-base-200k",
+    "file": "3dspeaker_speech_eres2net_base_200k_sv_zh-cn_16k-common.onnx",
+    "languages": ["chinese", "english"]
+  },
+  {
+    "id": "eres2net-large",
+    "file": "3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx",
+    "languages": ["chinese"]
+  },
+  {
+    "id": "titanet-large",
+    "file": "nemo_en_titanet_large.onnx",
+    "languages": ["chinese"]
+  },
+  {
+    "id": "wespeaker-resnet34-cnceleb",
+    "file": "wespeaker_zh_cnceleb_resnet34_LM.onnx",
+    "languages": ["chinese"]
+  },
+  {
+    "id": "wespeaker-resnet34-voxceleb",
+    "file": "wespeaker_en_voxceleb_resnet34_LM.onnx",
+    "languages": ["chinese"]
+  },
+  {
+    "id": "wespeaker-resnet293-voxceleb",
+    "file": "wespeaker_en_voxceleb_resnet293_LM.onnx",
+    "languages": ["chinese"]
+  }
+]
