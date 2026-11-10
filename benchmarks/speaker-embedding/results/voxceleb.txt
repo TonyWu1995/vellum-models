@@ -1,16 +1,16 @@
 
-3dspeaker_speech_eres2net_base_200k_sv_zh-cn_16k-common.json
-2419 voiceprints, 40 speakers, 86918 same / 2828419 different pairs, EER 4.3% at 0.61
+voxceleb-3dspeaker_speech_campplus_sv_zh_en_16k-common_advanced.json
+2419 voiceprints, 40 speakers, 86918 same / 2828419 different pairs, EER 0.7% at 0.45
 threshold	missed	wrong
-0.4	0.0%	42.3%
-0.5	0.2%	20.4%
-0.6	3.2%	5.3%
-0.65	10.1%	1.8%
-0.7	24.9%	0.4%
-0.75	45.8%	0.1%
-0.8	68.2%	0.0%
+0.4	0.2%	1.9%
+0.5	1.8%	0.2%
+0.6	9.8%	0.0%
+0.65	20.0%	0.0%
+0.7	36.6%	0.0%
+0.75	57.4%	0.0%
+0.8	77.5%	0.0%
 
-3dspeaker_speech_eres2netv2_sv_zh-cn_16k-common.json
+voxceleb-3dspeaker_speech_eres2netv2_sv_zh-cn_16k-common.json
 2419 voiceprints, 40 speakers, 86918 same / 2828419 different pairs, EER 4.3% at 0.62
 threshold	missed	wrong
 0.4	0.0%	44.8%
@@ -21,13 +21,13 @@ threshold	missed	wrong
 0.75	45.8%	0.1%
 0.8	69.4%	0.0%
 
-campplus.json
-2419 voiceprints, 40 speakers, 86918 same / 2828419 different pairs, EER 0.7% at 0.45
+voxceleb-3dspeaker_speech_eres2net_base_200k_sv_zh-cn_16k-common.json
+2419 voiceprints, 40 speakers, 86918 same / 2828419 different pairs, EER 4.3% at 0.61
 threshold	missed	wrong
-0.4	0.2%	1.9%
-0.5	1.8%	0.2%
-0.6	9.8%	0.0%
-0.65	20.0%	0.0%
-0.7	36.6%	0.0%
-0.75	57.4%	0.0%
-0.8	77.5%	0.0%
+0.4	0.0%	42.3%
+0.5	0.2%	20.4%
+0.6	3.2%	5.3%
+0.65	10.1%	1.8%
+0.7	24.9%	0.4%
+0.75	45.8%	0.1%
+0.8	68.2%	0.0%

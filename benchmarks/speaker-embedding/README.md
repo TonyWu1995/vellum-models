@@ -20,38 +20,26 @@ The audio is not in this repository. Get it yourself:
 
 | Set | Language | What was used | Where |
 | --- | --- | --- | --- |
-| CN-Celeb (v2) eval | Chinese | 2365 clips, 195 speakers (162 have voiceprints from two recordings or more), 11 genres (interview, speech, singing, vlog, live broadcast, ...) | [OpenSLR 82](https://openslr.org/82/), `cn-celeb_v2.tar.gz` (22 GB). `CN-Celeb_flac/eval/` comes first in the archive, so stream it and stop when it is done (see below). Our download stalled partway, so we used the part that arrived. |
+| CN-Celeb (v2) eval | Chinese | 2365 clips, 195 speakers (162 have voiceprints from two recordings or more), 11 genres (interview, speech, singing, vlog, live broadcast, ...) | [OpenSLR 82](https://openslr.org/82/), `cn-celeb_v2.tar.gz` (22 GB). `CN-Celeb_flac/eval/` comes first in the archive, so `make` streams it and stops after the eval folder. Our download stalled partway, so we used the part that arrived. |
 | VoxCeleb1 test | English | all 4874 clips, 40 speakers | The official download needs a login; the same files are in the [Codec-SUPERB/Voxceleb1_test_original](https://huggingface.co/datasets/Codec-SUPERB/Voxceleb1_test_original) parquet files (1.3 GB). |
 
 Clip names become `<speaker>-<recording>-<n>`. A CN-Celeb recording is a speaker's genre session (`id00800-interview-02`); a VoxCeleb recording is one video.
 
 ## Run it
 
-Requirements: Node 24 or later, Python 3, curl. The results below came from Windows 11 on an AMD Ryzen 7 3800X with 32 GB of RAM, CPU only, 2 threads per model.
+Requirements: make, Node 24 or later, Python 3, curl. The results below came from Windows 11 on an AMD Ryzen 7 3800X with 32 GB of RAM, CPU only, 2 threads per model.
 
 ```sh
-npm install
-python -m venv venv && venv/Scripts/pip install -r requirements.txt   # venv/bin/pip on macOS and Linux
-sh download-models.sh
-
-# CN-Celeb: stream the archive and keep only the eval folder
-mkdir -p data/cnceleb && curl -s https://openslr.trmal.net/resources/82/cn-celeb_v2.tar.gz \
-  | tar xzf - -C data/cnceleb CN-Celeb_flac/eval
-node cnceleb.mjs data/cnceleb/CN-Celeb_flac/eval/test data/cn16k
-
-# VoxCeleb1 test
-mkdir -p data/vox1 && for f in test-00000-of-00003-d0eea6966e0eba2f test-00001-of-00003-1ab27c4d03da1754 test-00002-of-00003-4d6815b5778a4368; do
-  curl -fL -o data/vox1/$f.parquet https://huggingface.co/datasets/Codec-SUPERB/Voxceleb1_test_original/resolve/main/data/$f.parquet
-done
-venv/Scripts/python voxceleb.py data/vox1 data/vox16k
-
-# Embed with one model, then score; repeat per model in models.txt
-node embed.mjs data/cn16k models/3dspeaker_speech_campplus_sv_zh_en_16k-common_advanced.onnx data/campplus-zh.json
-node embed.mjs data/vox16k models/3dspeaker_speech_campplus_sv_zh_en_16k-common_advanced.onnx data/campplus-en.json
-node score.mjs data/campplus-zh.json data/campplus-en.json
+make                       # everything: download, convert, embed, score into results/
+make setup                 # only install the Node and Python packages
+make models                # only download the models
+make results/voxceleb.txt  # only the English run
+make clean                 # delete the downloads and everything made from them
 ```
 
-`tar` keeps reading the whole 22 GB archive even after the eval folder is out. Stop it with Ctrl+C once files stop appearing in `data/cnceleb/CN-Celeb_flac/eval`: the rest is training data.
+`make` skips what is already done, so it can be stopped and run again. Everything it downloads or makes goes in `data/`, `models/`, `node_modules/` and `venv/`, none of which is committed. A full run downloads about 4 GB and takes about two hours. Embedding with the larger models takes the longest.
+
+To try another model from [the sherpa-onnx collection](https://huggingface.co/csukuangfj/speaker-embedding-models), add its file name without `.onnx` to `MODELS` (and `EN_MODELS` for English) in the `Makefile`.
 
 ## Results (2026-11-10)
 
