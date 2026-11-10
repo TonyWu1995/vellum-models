@@ -55,6 +55,8 @@ node score.mjs data/campplus-zh.json data/campplus-en.json
 
 ## Results (2026-11-10)
 
+The full `score.mjs` output for every model, with each threshold, is in [`results/`](results) (`cnceleb.txt`, `voxceleb.txt`), and the embedding times are in `results/timing.txt`.
+
 ### Chinese: CN-Celeb
 
 891 voiceprints, 3861 same-person and 391242 different-person pairs.

@@ -1,0 +1,16 @@
+# Embedding time: all clips, 9 models running at once (CN-Celeb) / 3 at once (VoxCeleb), AMD Ryzen 7 3800X, 2 threads each
+## CN-Celeb
+3dspeaker_speech_eres2net_base_200k_sv_zh-cn_16k-common.onnx done in 1091 s
+3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx done in 2570 s
+3dspeaker_speech_eres2netv2_sv_zh-cn_16k-common.onnx done in 2085 s
+campplus.onnx done in 630 s
+nemo_en_titanet_large.onnx done in 1250 s
+wespeaker_en_voxceleb_resnet293_LM.onnx done in 3677 s
+wespeaker_en_voxceleb_resnet34_LM.onnx done in 897 s
+wespeaker_zh_cnceleb_resnet34_LM.onnx done in 720 s
+## VoxCeleb1
+3dspeaker_speech_eres2net_base_200k_sv_zh-cn_16k-common.onnx done in 1762 s
+3dspeaker_speech_eres2netv2_sv_zh-cn_16k-common.onnx done in 3413 s
+campplus.onnx done in 762 s
+## Stopped
+wespeaker_voxblink2_samresnet100.onnx: not finished after 97 min, 1.0-1.5 GB RAM
