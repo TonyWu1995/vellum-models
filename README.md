@@ -7,3 +7,9 @@ Speech models converted for [Vellum](https://github.com/TonyWu1995) live caption
 | [`parakeet-eou-120m-v1`](https://github.com/TonyWu1995/vellum-models/releases/tag/parakeet-eou-120m-v1) | NVIDIA Parakeet Realtime EOU 120M v1, int8, for sherpa-onnx | NVIDIA Open Model License (`LICENSE` and `NOTICE` in the release) |
 
 Model weights keep their original license; see each release.
+
+## Benchmarks
+
+| Benchmark | Chose |
+| --- | --- |
+| [`benchmarks/speaker-embedding`](benchmarks/speaker-embedding) | CAM++ for recognizing speakers across transcripts, Chinese and English ([Vellum #186](https://github.com/TonyWu1995/Vellum/issues/186)) |
