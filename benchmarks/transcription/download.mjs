@@ -38,11 +38,11 @@ await download(ENGLISH_URL, 'data/english.parquet')
 await download(VAD_URL, 'data/models/silero_vad.onnx')
 for (const model of models) {
   if (model.archive) await downloadArchive(model.archive)
-  else if (model.gguf) {
-    mkdirSync(`data/models/${model.folder}`, { recursive: true })
-    for (const file of [model.gguf, model.mmproj]) await download(`${model.url}/${file}`, `data/models/${model.folder}/${file}`)
-  } else if (model.repo) {
+  else if (model.repo) {
     mkdirSync('data/models/transcribe-cpp', { recursive: true })
     await download(`https://huggingface.co/${model.repo}/resolve/main/${model.gguf}`, `data/models/transcribe-cpp/${model.gguf}`)
+  } else if (model.gguf) {
+    mkdirSync(`data/models/${model.folder}`, { recursive: true })
+    for (const file of [model.gguf, model.mmproj]) await download(`${model.url}/${file}`, `data/models/${model.folder}/${file}`)
   } else await download(model.url, `data/models/${model.id}.bin`)
 }

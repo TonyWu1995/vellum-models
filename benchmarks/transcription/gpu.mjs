@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 
+if (process.platform !== 'win32') process.exit(0)
 const folder = 'node_modules/sherpa-onnx-win-x64'
 if (existsSync(join(folder, 'DirectML.dll'))) process.exit(0)
 const { version } = JSON.parse(readFileSync('node_modules/sherpa-onnx-node/package.json', 'utf8'))

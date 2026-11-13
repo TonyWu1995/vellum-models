@@ -136,3 +136,5 @@ Characters out over the whole recording, cut into pieces of up to 120 s as Vellu
 - The speeds in the main tables were measured while other runs shared the machine; the clean speeds are the ones to compare.
 - AISHELL-1 is read speech in a quiet room; a meeting is harder. The real recording shows completeness, not accuracy.
 - FireRedASR2 AED in 30 s pieces was run on Chinese only.
+- The "30 s pieces" rows load the speech detector again for every clip, so their RTF is a little high.
+- English numbers are scored as plain numbers ("1860" becomes "one thousand eight hundred sixty"), so models that write digits lose a little WER on years read the other way.
