@@ -147,5 +147,15 @@
     "devices": [
       "cpu"
     ]
+  },
+  {
+    "id": "fire-red-asr2-aed-crispasr",
+    "label": "FireRedASR2 AED (CrispASR, Q8)",
+    "kind": "crispasr",
+    "gguf": "firered-asr2-aed-q8_0.gguf",
+    "repo": "cstr/firered-asr2-aed-GGUF",
+    "devices": [
+      "gpu"
+    ]
   }
 ]

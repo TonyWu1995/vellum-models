@@ -46,7 +46,7 @@ if (process.argv[2]) {
 mkdirSync(FOLDER, { recursive: true })
 const only = process.env.MODELS?.split(',')
 const devices = process.env.DEVICES?.split(',') ?? DEVICES
-const chosen = only ? only.map((id) => models.find((model) => model.id === id)) : models
+const chosen = (only ? only.map((id) => models.find((model) => model.id === id)) : models).filter(({ kind }) => kind !== 'crispasr')
 for (const model of chosen) {
   for (const device of (model.devices ?? DEVICES).filter((name) => devices.includes(name))) {
     for (const set of SETS) {

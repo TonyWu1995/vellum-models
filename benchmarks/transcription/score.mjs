@@ -107,7 +107,7 @@ for (const set of ['chinese', 'english']) {
         return `${percent(errors, total)}${failed ? ` (${failed} empty)` : ''}`
       })
       lines.push(
-        `| ${model.label} | ${device} | ${cells.join(' | ')} | ${rtf.toFixed(3)} | ${(transcript.loadMs / 1000).toFixed(1)} s | ${transcript.maxRssMb} MB | ${timings.join(', ')} |`
+        `| ${model.label} | ${device} | ${cells.join(' | ')} | ${rtf.toFixed(3)} | ${transcript.maxRssMb ? `${(transcript.loadMs / 1000).toFixed(1)} s | ${transcript.maxRssMb} MB` : 'not measured | not measured'} | ${timings.join(', ')} |`
       )
     }
   }

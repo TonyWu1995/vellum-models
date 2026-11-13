@@ -50,7 +50,7 @@ if (modelId) {
 
 const only = process.env.MODELS?.split(',')
 const devices = process.env.DEVICES?.split(',') ?? DEVICES
-for (const model of models.filter(({ id }) => !only || only.includes(id))) {
+for (const model of models.filter(({ id, kind }) => kind !== 'crispasr' && (!only || only.includes(id)))) {
   for (const device of (model.devices ?? DEVICES).filter((name) => devices.includes(name))) {
     if (existsSync(`data/own/${model.id}-${device}.txt`)) continue
     console.log(model.id, device)

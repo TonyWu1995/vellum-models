@@ -25,3 +25,4 @@
 | Cohere Transcribe (transcribe.cpp, Q8, 30 s pieces) | gpu | 4.6% | 0.7% | 4.0% | 4.5% | 0.040 | 2.7 s | 706 MB | none |
 | Fun-ASR-Nano-2512 (transcribe.cpp, Q8, 30 s pieces) | gpu | 2.1% | 0.7% | 2.8% | 2.3% | 0.033 | 1.4 s | 523 MB | none |
 | FireRedASR2 AED (30 s pieces) | cpu | 1.5% | 1.1% | 1.8% | 1.5% | 0.560 | 4.9 s | 3452 MB | none |
+| FireRedASR2 AED (CrispASR, Q8) | gpu | 1.3% | 0.7% | 2.2% | 2.7% | 0.178 | not measured | not measured | none |
