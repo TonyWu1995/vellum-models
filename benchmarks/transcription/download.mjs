@@ -13,6 +13,8 @@ const ENGLISH_URL =
   'https://huggingface.co/datasets/openslr/librispeech_asr/resolve/main/all/test.clean/0000.parquet'
 // Windows' own tar reads .tar.bz2; Git's tar, often first on the PATH, cannot run bzip2 there
 const TAR = process.platform === 'win32' ? join(process.env.SystemRoot, 'System32', 'tar.exe') : 'tar'
+const ALIGNER_URL =
+  'https://huggingface.co/cstr/qwen3-forced-aligner-0.6b-GGUF/resolve/main/qwen3-forced-aligner-0.6b-q8_0.gguf'
 const CRISPASR_URL =
   'https://github.com/CrispStrobe/CrispASR/releases/download/v0.8.53/crispasr-windows-x86_64-vulkan.zip'
 
@@ -41,6 +43,8 @@ if (process.platform === 'win32' && !existsSync('data/crispasr')) {
   execFileSync(TAR, ['-xf', 'crispasr.zip'], { cwd: 'data/crispasr', stdio: 'inherit' })
   rmSync('data/crispasr/crispasr.zip')
 }
+mkdirSync('data/models/aligners', { recursive: true })
+await download(ALIGNER_URL, 'data/models/aligners/qwen3-forced-aligner-0.6b-q8_0.gguf')
 await download(CHINESE_URL, 'data/chinese.parquet')
 await download(ENGLISH_URL, 'data/english.parquet')
 await download(VAD_URL, 'data/models/silero_vad.onnx')

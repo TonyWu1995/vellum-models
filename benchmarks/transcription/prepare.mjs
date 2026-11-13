@@ -61,6 +61,7 @@ async function prepare(language, { parquet, clip }) {
     for (let n = 1; n <= LONG_PIECES; n += 1) {
       const pieces = []
       const texts = []
+      const parts = []
       let samples = 0
       while (samples < seconds * SAMPLE_RATE) {
         const { audio, text } = rows[next++]
@@ -68,11 +69,12 @@ async function prepare(language, { parquet, clip }) {
         if (samples + pcm.length > (seconds + 5) * SAMPLE_RATE) break
         pieces.push(pcm, GAP)
         texts.push(text)
+        parts.push({ text, start: samples / SAMPLE_RATE, end: (samples + pcm.length) / SAMPLE_RATE })
         samples += pcm.length + GAP.length
       }
       const id = `long-${seconds}s-${n}`
       writeWav(`${folder}/${id}.wav`, pieces)
-      clips.push({ id, length: `${seconds}s`, seconds: samples / SAMPLE_RATE, text: texts.join(' ') })
+      clips.push({ id, length: `${seconds}s`, seconds: samples / SAMPLE_RATE, text: texts.join(' '), parts })
     }
   }
   writeFileSync(`${folder}/clips.json`, JSON.stringify(clips, null, 2))

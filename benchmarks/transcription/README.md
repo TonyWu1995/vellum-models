@@ -38,6 +38,7 @@ make download    # download the models and the Chinese and English clips
 make prepare     # pick the clips and make the long pieces
 make transcribe  # every model transcribes every clip, on each device
 make crispasr    # Windows: the CrispASR models
+make align       # Windows: word times from a forced aligner, on the long pieces
 make score       # write results/
 make clean       # delete everything downloaded or made
 ```
@@ -49,6 +50,8 @@ make clean       # delete everything downloaded or made
 | `transcribe.mjs` | writes `data/transcripts/<model>-<device>-<language>.json`, skipping what is already there; `MODELS`, `DEVICES` and `SETS` pick a subset |
 | `score.mjs` | writes `results/chinese.md` and `results/english.md` |
 | `crispasr.mjs` | Windows: runs the `crispasr` models on [CrispASR](https://github.com/CrispStrobe/CrispASR)'s command line (it has no Node package), one process per language; its RTF is CrispASR's own timing, without loading, and memory is not measured |
+| `align.mjs` | runs Qwen3-ForcedAligner (on CrispASR) on the long pieces with the reference text and with each model's transcript, and writes `results/alignment.md` |
+| `normalize.mjs` | the text normalization `score.mjs` and `align.mjs` share |
 | `own.mjs` | `node own.mjs <recording>...` converts your own recordings, then `node own.mjs` transcribes them into `data/own/`, which stays on your computer |
 
 A full run downloads about 25 GB of models and takes most of a day, mostly the slow sherpa-onnx runs.
@@ -140,6 +143,25 @@ Characters out over the whole recording, cut into pieces of up to 120 s as Vellu
 
 FireRedASR2 AED on CrispASR was not run on the real recording.
 
+### Word times from a forced aligner
+
+Qwen3-ASR, Fun-ASR-Nano and SenseVoice give no times on transcribe.cpp (it answers "unsupported timestamp granularity"), so `align.mjs` gives their transcripts to [Qwen3-ForcedAligner-0.6B](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) (Q8, on CrispASR's `--align-only`, Vulkan), which times every character or word. The truth is where speech starts and ends in each sentence of the long pieces (speech detection on each joined clip). Full table: [`results/alignment.md`](results/alignment.md).
+
+| Text given to the aligner | Language | Sentences | Median start error | Median end error | Boundaries within 0.2 s | Within 0.5 s | RTF |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| the reference | Chinese | 118 | 0.04 s | 0.05 s | 97 % | 99 % | 0.046 |
+| Qwen3-ASR's transcript | Chinese | 118 | 0.04 s | 0.05 s | 96 % | 97 % | 0.035 |
+| Fun-ASR-Nano's transcript | Chinese | 118 | 0.04 s | 0.05 s | 96 % | 97 % | 0.037 |
+| SenseVoice's transcript | Chinese | 118 | 0.04 s | 0.05 s | 95 % | 97 % | 0.038 |
+| the reference | English | 68 | 0.03 s | 0.26 s | 60 % | 90 % | 0.038 |
+| Qwen3-ASR's transcript | English | 68 | 0.03 s | 0.27 s | 60 % | 93 % | 0.038 |
+| Fun-ASR-Nano's transcript | English | 68 | 0.03 s | 0.26 s | 60 % | 93 % | 0.038 |
+| SenseVoice's transcript | English | 68 | 0.03 s | 0.28 s | 57 % | 91 % | 0.041 |
+
+- A model's mistakes hardly move the times: the aligner places a wrong word where it was said.
+- In English the aligner ends a sentence about 0.26 s before speech detection does, and starts one in ten sentences about 1 s early; Chinese has neither.
+- RTF includes starting CrispASR and loading the aligner for every piece.
+
 ### Not chosen
 
 - **Cohere Transcribe:** works in 30 s pieces, but less accurate in Chinese than Qwen3-ASR and Fun-ASR-Nano, still drops about 9 % of the real recording, and gives no times.
@@ -154,4 +176,5 @@ FireRedASR2 AED on CrispASR was not run on the real recording.
 - AISHELL-1 is read speech in a quiet room; a meeting is harder. The real recording shows completeness, not accuracy.
 - FireRedASR2 AED in 30 s pieces was run on Chinese only.
 - The "30 s pieces" rows load the speech detector again for every clip, so their RTF is a little high.
+- The alignment truth comes from speech detection, which can itself be off by a few tens of milliseconds.
 - English numbers are scored as plain numbers ("1860" becomes "one thousand eight hundred sixty"), so models that write digits lose a little WER on years read the other way.
