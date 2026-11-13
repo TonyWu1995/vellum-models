@@ -1,0 +1,161 @@
+[
+  {
+    "id": "whisper-large-v3-turbo",
+    "label": "Whisper Large v3 Turbo",
+    "kind": "whisper",
+    "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin",
+    "devices": [
+      "gpu"
+    ]
+  },
+  {
+    "id": "parakeet-tdt-v3",
+    "label": "Parakeet TDT 0.6B v3",
+    "kind": "nemo-transducer",
+    "archive": "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8"
+  },
+  {
+    "id": "qwen3-asr-0.6b",
+    "label": "Qwen3-ASR 0.6B",
+    "kind": "qwen3-asr",
+    "archive": "sherpa-onnx-qwen3-asr-0.6B-int8-2026-03-25"
+  },
+  {
+    "id": "qwen3-asr-0.6b-long",
+    "label": "Qwen3-ASR 0.6B (2 min limit)",
+    "kind": "qwen3-asr",
+    "archive": "sherpa-onnx-qwen3-asr-0.6B-int8-2026-03-25",
+    "options": {
+      "maxTotalLen": 2600,
+      "maxNewTokens": 1024
+    }
+  },
+  {
+    "id": "qwen3-asr-0.6b-llama",
+    "label": "Qwen3-ASR 0.6B (llama.cpp, Q8)",
+    "kind": "llama",
+    "folder": "qwen3-asr-gguf",
+    "gguf": "Qwen3-ASR-0.6B-Q8_0.gguf",
+    "mmproj": "mmproj-Qwen3-ASR-0.6B-Q8_0.gguf",
+    "url": "https://huggingface.co/ggml-org/Qwen3-ASR-0.6B-GGUF/resolve/main"
+  },
+  {
+    "id": "cohere-transcribe",
+    "label": "Cohere Transcribe",
+    "kind": "cohere-transcribe",
+    "archive": "sherpa-onnx-cohere-transcribe-14-lang-int8-2026-04-01"
+  },
+  {
+    "id": "fire-red-asr2-aed",
+    "label": "FireRedASR2 AED",
+    "kind": "fire-red-asr",
+    "archive": "sherpa-onnx-fire-red-asr2-zh_en-int8-2026-02-26"
+  },
+  {
+    "id": "fire-red-asr2-ctc",
+    "label": "FireRedASR2 CTC",
+    "kind": "fire-red-asr-ctc",
+    "archive": "sherpa-onnx-fire-red-asr2-ctc-zh_en-int8-2026-02-25"
+  },
+  {
+    "id": "sense-voice",
+    "label": "SenseVoice Small",
+    "kind": "sense-voice",
+    "archive": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17"
+  },
+  {
+    "id": "sense-voice-fp32",
+    "label": "SenseVoice Small (fp32)",
+    "kind": "sense-voice",
+    "archive": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17",
+    "file": "model.onnx"
+  },
+  {
+    "id": "sense-voice-tcpp",
+    "label": "SenseVoice Small (transcribe.cpp, Q8)",
+    "kind": "transcribe-cpp",
+    "gguf": "SenseVoiceSmall-Q8_0.gguf",
+    "language": true,
+    "repo": "handy-computer/SenseVoiceSmall-gguf"
+  },
+  {
+    "id": "parakeet-tdt-v3-tcpp",
+    "label": "Parakeet TDT 0.6B v3 (transcribe.cpp, Q8)",
+    "kind": "transcribe-cpp",
+    "gguf": "parakeet-tdt-0.6b-v3-Q8_0.gguf",
+    "repo": "handy-computer/parakeet-tdt-0.6b-v3-gguf"
+  },
+  {
+    "id": "qwen3-asr-0.6b-tcpp",
+    "label": "Qwen3-ASR 0.6B (transcribe.cpp, Q8)",
+    "kind": "transcribe-cpp",
+    "gguf": "Qwen3-ASR-0.6B-Q8_0.gguf",
+    "repo": "handy-computer/Qwen3-ASR-0.6B-gguf"
+  },
+  {
+    "id": "cohere-transcribe-tcpp",
+    "label": "Cohere Transcribe (transcribe.cpp, Q8)",
+    "kind": "transcribe-cpp",
+    "gguf": "cohere-transcribe-03-2026-Q8_0.gguf",
+    "language": true,
+    "repo": "handy-computer/cohere-transcribe-03-2026-gguf"
+  },
+  {
+    "id": "breeze-asr-25-tcpp",
+    "label": "Breeze-ASR-25 (transcribe.cpp, Q8)",
+    "kind": "transcribe-cpp",
+    "gguf": "Breeze-ASR-25-Q8_0.gguf",
+    "language": true,
+    "repo": "handy-computer/Breeze-ASR-25-gguf"
+  },
+  {
+    "id": "funasr-nano-tcpp",
+    "label": "Fun-ASR-Nano-2512 (transcribe.cpp, Q8)",
+    "kind": "transcribe-cpp",
+    "gguf": "Fun-ASR-Nano-2512-Q8_0.gguf",
+    "repo": "handy-computer/Fun-ASR-Nano-2512-gguf"
+  },
+  {
+    "id": "cohere-transcribe-tcpp-30s",
+    "label": "Cohere Transcribe (transcribe.cpp, Q8, 30 s pieces)",
+    "kind": "transcribe-cpp",
+    "gguf": "cohere-transcribe-03-2026-Q8_0.gguf",
+    "language": true,
+    "repo": "handy-computer/cohere-transcribe-03-2026-gguf",
+    "pieceSeconds": 30,
+    "devices": [
+      "gpu"
+    ]
+  },
+  {
+    "id": "funasr-nano-tcpp-30s",
+    "label": "Fun-ASR-Nano-2512 (transcribe.cpp, Q8, 30 s pieces)",
+    "kind": "transcribe-cpp",
+    "gguf": "Fun-ASR-Nano-2512-Q8_0.gguf",
+    "repo": "handy-computer/Fun-ASR-Nano-2512-gguf",
+    "pieceSeconds": 30,
+    "devices": [
+      "gpu"
+    ]
+  },
+  {
+    "id": "fire-red-asr2-aed-30s",
+    "label": "FireRedASR2 AED (30 s pieces)",
+    "kind": "fire-red-asr",
+    "archive": "sherpa-onnx-fire-red-asr2-zh_en-int8-2026-02-26",
+    "pieceSeconds": 30,
+    "devices": [
+      "cpu"
+    ]
+  },
+  {
+    "id": "fire-red-asr2-aed-crispasr",
+    "label": "FireRedASR2 AED (CrispASR, Q8)",
+    "kind": "crispasr",
+    "gguf": "firered-asr2-aed-q8_0.gguf",
+    "repo": "cstr/firered-asr2-aed-GGUF",
+    "devices": [
+      "gpu"
+    ]
+  }
+]
