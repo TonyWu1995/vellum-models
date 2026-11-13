@@ -51,7 +51,8 @@ make clean       # delete everything downloaded or made
 | `score.mjs` | writes `results/chinese.md` and `results/english.md` |
 | `crispasr.mjs` | Windows: runs the `crispasr` models on [CrispASR](https://github.com/CrispStrobe/CrispASR)'s command line (it has no Node package), one process per language; its RTF is CrispASR's own timing, without loading, and memory is not measured |
 | `align.mjs` | runs Qwen3-ForcedAligner (on CrispASR and onnxruntime) on the long pieces with the reference text and with each model's transcript, and writes `results/alignment.md` |
-| `onnxAligner.mjs` | Qwen3-ForcedAligner on onnxruntime-node: tokenizer and audio features from transformers.js, one pass of the model, Qwen's repair of times that go backwards |
+| `onnxAligner.mjs` | Qwen3-ForcedAligner on onnxruntime-node: tokenizer from `@huggingface/tokenizers`, audio features from `whisperMel.mjs`, one pass of the model, Qwen's repair of times that go backwards |
+| `whisperMel.mjs` | Whisper's 128-band log-mel features in plain JS (same values as transformers.js's WhisperFeatureExtractor, to within float rounding) |
 | `normalize.mjs` | the text normalization `score.mjs` and `align.mjs` share |
 | `own.mjs` | `node own.mjs <recording>...` converts your own recordings, then `node own.mjs` transcribes them into `data/own/`, which stays on your computer |
 
@@ -69,7 +70,7 @@ Libraries, as named in the tables below:
 | whisper.cpp | `@fugood/whisper.node` 1.2.0-rc.1 | Vulkan |
 | llama.cpp | `@fugood/llama.node` 1.7.15 | CPU, Vulkan |
 | transcribe.cpp | `transcribe-cpp` 0.4.2 | Vulkan |
-| onnxruntime | `onnxruntime-node` 1.30.0, with `@huggingface/transformers` 4.3.2 for the tokenizer and audio features (it pins onnxruntime-node 1.30) | CPU, DirectML |
+| onnxruntime | `onnxruntime-node` 1.31.1 (Vellum's version), with `@huggingface/tokenizers` 0.2.0 for the tokenizer | CPU, DirectML |
 | CrispASR | `crispasr-windows-x86_64-vulkan.zip` v0.8.53 (command line) | Vulkan (encoder) + CPU (decoder) |
 
 ### Chinese: AISHELL-1 (CER, lower is better)
