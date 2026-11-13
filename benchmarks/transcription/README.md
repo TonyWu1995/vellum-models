@@ -50,7 +50,8 @@ make clean       # delete everything downloaded or made
 | `transcribe.mjs` | writes `data/transcripts/<model>-<device>-<language>.json`, skipping what is already there; `MODELS`, `DEVICES` and `SETS` pick a subset |
 | `score.mjs` | writes `results/chinese.md` and `results/english.md` |
 | `crispasr.mjs` | Windows: runs the `crispasr` models on [CrispASR](https://github.com/CrispStrobe/CrispASR)'s command line (it has no Node package), one process per language; its RTF is CrispASR's own timing, without loading, and memory is not measured |
-| `align.mjs` | runs Qwen3-ForcedAligner (on CrispASR) on the long pieces with the reference text and with each model's transcript, and writes `results/alignment.md` |
+| `align.mjs` | runs Qwen3-ForcedAligner (on CrispASR and onnxruntime) on the long pieces with the reference text and with each model's transcript, and writes `results/alignment.md` |
+| `onnxAligner.mjs` | Qwen3-ForcedAligner on onnxruntime-node: tokenizer and audio features from transformers.js, one pass of the model, Qwen's repair of times that go backwards |
 | `normalize.mjs` | the text normalization `score.mjs` and `align.mjs` share |
 | `own.mjs` | `node own.mjs <recording>...` converts your own recordings, then `node own.mjs` transcribes them into `data/own/`, which stays on your computer |
 
@@ -68,6 +69,7 @@ Libraries, as named in the tables below:
 | whisper.cpp | `@fugood/whisper.node` 1.2.0-rc.1 | Vulkan |
 | llama.cpp | `@fugood/llama.node` 1.7.15 | CPU, Vulkan |
 | transcribe.cpp | `transcribe-cpp` 0.4.2 | Vulkan |
+| onnxruntime | `onnxruntime-node` 1.30.0, with `@huggingface/transformers` 4.3.2 for the tokenizer and audio features (it pins onnxruntime-node 1.30) | CPU, DirectML |
 | CrispASR | `crispasr-windows-x86_64-vulkan.zip` v0.8.53 (command line) | Vulkan (encoder) + CPU (decoder) |
 
 ### Chinese: AISHELL-1 (CER, lower is better)
@@ -161,6 +163,20 @@ Qwen3-ASR, Fun-ASR-Nano and SenseVoice give no times on transcribe.cpp (it answe
 - A model's mistakes hardly move the times: the aligner places a wrong word where it was said.
 - In English the aligner ends a sentence about 0.26 s before speech detection does, and starts one in ten sentences about 1 s early; Chinese has neither.
 - RTF includes starting CrispASR and loading the aligner for every piece.
+
+The same aligner also runs on onnxruntime, the library Vellum already uses for speakers: `onnxAligner.mjs` ports Qwen's reference code ([`qwen3_forced_aligner.py`](https://github.com/QwenLM/Qwen3-ASR/blob/main/qwen_asr/inference/qwen3_forced_aligner.py)) and runs the [ONNX export](https://huggingface.co/valoomba/Qwen3-ForcedAligner-0.6B-ONNX). It gives the same times as CrispASR to the 10 ms, so its errors are the same; what differs is speed and memory (reference text, Chinese):
+
+| Library, device, file | Pieces | RTF | Load | Peak memory |
+| --- | --- | --- | --- | --- |
+| CrispASR, Vulkan, Q8 (985 MB) | whole 30–120 s | 0.046 (with loading) | per piece | not measured |
+| onnxruntime, DirectML, fp32 (3.7 GB) | whole 30–120 s | 0.033 | 8.9 s | 2.7 GB |
+| onnxruntime, DirectML, q4 (1.0 GB) | whole 30–120 s | 0.087 | 8.1 s | 9.7 GB |
+| **onnxruntime, DirectML, q4 (1.0 GB)** | **up to 30 s** | **0.036** | 7.4 s | **1.9 GB** |
+| onnxruntime, CPU, q4 | whole 30–120 s | 0.222 | 5.5 s | 4.1 GB |
+| onnxruntime, CPU, q4 | up to 30 s | 0.133 | 5.6 s | 2.5 GB |
+
+- The q4 file is slow and large on whole 2-minute pieces on DirectML; in pieces of up to 30 s, as Vellum cuts speech, it is as fast as fp32 at a quarter of the download.
+- Peak memory is the process's resident memory; on DirectML the weights also sit in GPU memory.
 
 ### Not chosen
 

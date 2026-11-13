@@ -1,16 +1,39 @@
 // Measures where a forced aligner puts each sentence of the long pieces. The truth is where speech starts
 // and ends inside each joined clip (by speech detection, so the silence around a clip is not an error).
 // The aligner gets either the reference text or a model's own transcript, as Vellum would give it.
-import { spawnSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { NORMALIZE } from './normalize.mjs'
+import { openOnnxAligner } from './onnxAligner.mjs'
 import { pieces } from './recognizers.mjs'
 
 const EXE = 'data/crispasr/crispasr-windows-x86_64-vulkan/crispasr.exe'
-const ALIGNERS = { 'qwen3-forced-aligner': 'data/models/aligners/qwen3-forced-aligner-0.6b-q8_0.gguf' }
-const TEXTS = ['reference', 'qwen3-asr-0.6b-tcpp-gpu', 'funasr-nano-tcpp-30s-gpu', 'sense-voice-tcpp-gpu']
+const ONNX = 'data/models/aligners/qwen3-forced-aligner-onnx'
+const ALL_TEXTS = ['reference', 'qwen3-asr-0.6b-tcpp-gpu', 'funasr-nano-tcpp-30s-gpu', 'sense-voice-tcpp-gpu']
+// The CrispASR run started and loaded the aligner for every piece; the onnxruntime runs load it once
+const ALIGNERS = {
+  'qwen3-forced-aligner': { label: 'Qwen3-ForcedAligner Q8 (CrispASR, Vulkan)', crispasr: 'data/models/aligners/qwen3-forced-aligner-0.6b-q8_0.gguf', texts: ALL_TEXTS },
+  'qwen3-forced-aligner-onnx-q4-dml': { label: 'Qwen3-ForcedAligner q4 (onnxruntime, DirectML)', file: 'model_q4.onnx', provider: 'dml', texts: ALL_TEXTS },
+  'qwen3-forced-aligner-onnx-fp32-dml': { label: 'Qwen3-ForcedAligner fp32 (onnxruntime, DirectML)', file: 'model.onnx', provider: 'dml', texts: ALL_TEXTS.slice(0, 2) },
+  'qwen3-forced-aligner-onnx-q4-cpu': { label: 'Qwen3-ForcedAligner q4 (onnxruntime, CPU)', file: 'model_q4.onnx', provider: 'cpu', texts: ALL_TEXTS.slice(0, 2) },
+  // Vellum cuts speech into pieces of up to 30 s, so it aligns each piece's text against that piece only
+  'qwen3-forced-aligner-onnx-q4-dml-30s': { label: 'Qwen3-ForcedAligner q4 (onnxruntime, DirectML), 30 s pieces', file: 'model_q4.onnx', provider: 'dml', texts: ['reference'], pieceSeconds: 30 },
+  'qwen3-forced-aligner-onnx-q4-cpu-30s': { label: 'Qwen3-ForcedAligner q4 (onnxruntime, CPU), 30 s pieces', file: 'model_q4.onnx', provider: 'cpu', texts: ['reference'], pieceSeconds: 30 }
+}
+
+// Joins sentences into pieces of up to maxSeconds; a longer sentence is a piece of its own
+function sentencePieces(parts, maxSeconds) {
+  const out = []
+  for (const part of parts) {
+    const last = out.at(-1)
+    if (last && part.end - last.start <= maxSeconds) {
+      last.end = part.end
+      last.texts.push(part.text)
+    } else out.push({ start: part.start, end: part.end, texts: [part.text] })
+  }
+  return out
+}
 const LANGUAGES = { chinese: 'zh', english: 'en' }
-const BYTES_PER_SECOND = 32000
 
 function speechBounds(wav, part) {
   const from = 44 + Math.round(part.start * 16000) * 2
@@ -20,10 +43,30 @@ function speechBounds(wav, part) {
   return { start: part.start + found[0].start / 16000, end: part.start + found.at(-1).end / 16000 }
 }
 
-function align(aligner, set, clip, text) {
+async function openAligner(aligner) {
+  const { crispasr, file, provider, pieceSeconds } = ALIGNERS[aligner]
+  if (!crispasr) {
+    const align = await openOnnxAligner(ONNX, file, provider)
+    return async (set, clip, text) => {
+      const wav = readFileSync(`data/${set}/${clip.id}.wav`)
+      const samples = Float32Array.from(new Int16Array(wav.buffer.slice(wav.byteOffset + 44, wav.byteOffset + wav.length)), (value) => value / 32768)
+      const begin = performance.now()
+      if (!pieceSeconds) return { words: await align(samples, text), ms: performance.now() - begin }
+      const words = []
+      for (const piece of sentencePieces(clip.parts, pieceSeconds)) {
+        const found = await align(samples.subarray(Math.round(piece.start * 16000), Math.round(piece.end * 16000)), piece.texts.join(' '))
+        words.push(...found.map((word) => ({ ...word, start: word.start + piece.start, end: word.end + piece.start })))
+      }
+      return { words, ms: performance.now() - begin }
+    }
+  }
+  return async (set, clip, text) => crispasrAlign(crispasr, set, clip, text)
+}
+
+function crispasrAlign(model, set, clip, text) {
   writeFileSync('data/align-text.txt', text)
   const begin = performance.now()
-  const run = spawnSync(EXE, ['--align-only', '-am', ALIGNERS[aligner], '-f', `data/${set}/${clip.id}.wav`, '--text-file', 'data/align-text.txt',
+  const run = spawnSync(EXE, ['--align-only', '-am', model, '-f', `data/${set}/${clip.id}.wav`, '--text-file', 'data/align-text.txt',
     '--align-granularity', 'word', '--align-format', 'json', '-l', LANGUAGES[set]], { encoding: 'utf8', maxBuffer: 1 << 26 })
   const ms = performance.now() - begin
   try {
@@ -82,25 +125,40 @@ function measure(set, clip, words) {
   })
 }
 
+const outputOf = (aligner, source, set) => `data/align/${aligner}-${source}-${set}.json`
+const missing = (aligner) =>
+  ALIGNERS[aligner].texts.flatMap((source) => Object.keys(LANGUAGES).map((set) => [source, set])).filter(
+    ([source, set]) => !existsSync(outputOf(aligner, source, set)) && (source === 'reference' || existsSync(`data/transcripts/${source}-${set}.json`))
+  )
+
+// Each aligner runs in a process of its own, so its peak memory is its own
+async function run(aligner) {
+  const loadStart = performance.now()
+  const align = await openAligner(aligner)
+  const loadMs = Math.round(performance.now() - loadStart)
+  for (const [source, set] of missing(aligner)) {
+    console.log(aligner, source, set)
+    const clips = JSON.parse(readFileSync(`data/${set}/clips.json`, 'utf8')).filter(({ parts }) => parts)
+    const texts = source === 'reference' ? null : JSON.parse(readFileSync(`data/transcripts/${source}-${set}.json`, 'utf8')).results
+    const results = []
+    for (const clip of clips) {
+      const text = texts ? texts.find(({ id }) => id === clip.id).text : clip.parts.map(({ text }) => text).join(' ')
+      const { ms, words } = await align(set, clip, text)
+      results.push({ id: clip.id, ms: Math.round(ms), seconds: clip.seconds, sentences: measure(set, clip, words) })
+    }
+    const maxRssMb = Math.round(process.resourceUsage().maxRSS / 1024)
+    writeFileSync(outputOf(aligner, source, set), JSON.stringify({ aligner, source, set, loadMs, maxRssMb, results }, null, 2))
+  }
+}
+
 if (process.platform !== 'win32') process.exit(0)
+if (process.env.ALIGNER) {
+  await run(process.env.ALIGNER)
+  process.exit(0)
+}
 mkdirSync('data/align', { recursive: true })
 for (const aligner of Object.keys(ALIGNERS)) {
-  for (const source of TEXTS) {
-    for (const set of Object.keys(LANGUAGES)) {
-      const output = `data/align/${aligner}-${source}-${set}.json`
-      const transcripts = `data/transcripts/${source}-${set}.json`
-      if (existsSync(output) || (source !== 'reference' && !existsSync(transcripts))) continue
-      console.log(aligner, source, set)
-      const clips = JSON.parse(readFileSync(`data/${set}/clips.json`, 'utf8')).filter(({ parts }) => parts)
-      const texts = source === 'reference' ? null : JSON.parse(readFileSync(transcripts, 'utf8')).results
-      const results = clips.map((clip) => {
-        const text = texts ? texts.find(({ id }) => id === clip.id).text : clip.parts.map(({ text }) => text).join(' ')
-        const { ms, words } = align(aligner, set, clip, text)
-        return { id: clip.id, ms: Math.round(ms), seconds: clip.seconds, sentences: measure(set, clip, words) }
-      })
-      writeFileSync(output, JSON.stringify({ aligner, source, set, results }, null, 2))
-    }
-  }
+  if (missing(aligner).length) execFileSync(process.execPath, ['align.mjs'], { stdio: 'inherit', env: { ...process.env, ALIGNER: aligner } })
 }
 
 const median = (values) => {
@@ -109,22 +167,22 @@ const median = (values) => {
 }
 const share = (values, limit) => `${Math.round((100 * values.filter((value) => value <= limit).length) / values.length)} %`
 const lines = [
-  '| Aligner | Text | Language | Sentences | Missed | Median start error | Median end error | Within 0.2 s | Within 0.5 s | RTF |',
-  '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'
+  '| Aligner | Text | Language | Sentences | Missed | Median start error | Median end error | Within 0.2 s | Within 0.5 s | RTF | Load | Peak memory |',
+  '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'
 ]
 for (const aligner of Object.keys(ALIGNERS)) {
-  for (const source of TEXTS) {
+  for (const source of ALIGNERS[aligner].texts) {
     for (const set of Object.keys(LANGUAGES)) {
       const path = `data/align/${aligner}-${source}-${set}.json`
       if (!existsSync(path)) continue
-      const { results } = JSON.parse(readFileSync(path, 'utf8'))
+      const { results, loadMs, maxRssMb } = JSON.parse(readFileSync(path, 'utf8'))
       const sentences = results.flatMap(({ sentences }) => sentences).filter(({ skipped }) => !skipped)
       const timed = sentences.filter(({ missed }) => !missed)
       const starts = timed.map(({ start }) => Math.abs(start))
       const ends = timed.map(({ end }) => Math.abs(end))
       const rtf = results.reduce((sum, { ms }) => sum + ms, 0) / 1000 / results.reduce((sum, { seconds }) => sum + seconds, 0)
       lines.push(
-        `| ${aligner} | ${source} | ${set} | ${sentences.length} | ${sentences.length - timed.length} | ${median(starts).toFixed(2)} s | ${median(ends).toFixed(2)} s | ${share([...starts, ...ends], 0.2)} | ${share([...starts, ...ends], 0.5)} | ${rtf.toFixed(3)} |`
+        `| ${ALIGNERS[aligner].label} | ${source} | ${set} | ${sentences.length} | ${sentences.length - timed.length} | ${median(starts).toFixed(2)} s | ${median(ends).toFixed(2)} s | ${share([...starts, ...ends], 0.2)} | ${share([...starts, ...ends], 0.5)} | ${rtf.toFixed(3)} | ${loadMs ? `${(loadMs / 1000).toFixed(1)} s` : 'per piece'} | ${maxRssMb ? `${maxRssMb} MB` : 'not measured'} |`
       )
     }
   }
