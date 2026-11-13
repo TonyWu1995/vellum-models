@@ -45,6 +45,11 @@ if (process.platform === 'win32' && !existsSync('data/crispasr')) {
 }
 mkdirSync('data/models/aligners', { recursive: true })
 await download(ALIGNER_URL, 'data/models/aligners/qwen3-forced-aligner-0.6b-q8_0.gguf')
+const ONNX_ALIGNER = 'data/models/aligners/qwen3-forced-aligner-onnx'
+mkdirSync(`${ONNX_ALIGNER}/onnx`, { recursive: true })
+for (const file of ['config.json', 'preprocessor_config.json', 'tokenizer.json', 'tokenizer_config.json', 'onnx/model.onnx', 'onnx/model.onnx_data', 'onnx/model_q4.onnx']) {
+  await download(`https://huggingface.co/valoomba/Qwen3-ForcedAligner-0.6B-ONNX/resolve/main/${file}`, `${ONNX_ALIGNER}/${file}`)
+}
 await download(CHINESE_URL, 'data/chinese.parquet')
 await download(ENGLISH_URL, 'data/english.parquet')
 await download(VAD_URL, 'data/models/silero_vad.onnx')
