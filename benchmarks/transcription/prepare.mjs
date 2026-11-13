@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import ffmpeg from 'ffmpeg-static'
 import { asyncBufferFromFile, parquetReadObjects } from 'hyparquet'
+import { wavOf } from './recognizers.mjs'
 
 const SAMPLE_RATE = 16000
 const SHORT_CLIPS = 100
@@ -39,21 +40,7 @@ function decode(bytes) {
 }
 
 function writeWav(path, pieces) {
-  const length = pieces.reduce((sum, piece) => sum + piece.length, 0)
-  const header = Buffer.alloc(44)
-  header.write('RIFF', 0)
-  header.writeUInt32LE(36 + length * 2, 4)
-  header.write('WAVEfmt ', 8)
-  header.writeUInt32LE(16, 16)
-  header.writeUInt16LE(1, 20)
-  header.writeUInt16LE(1, 22)
-  header.writeUInt32LE(SAMPLE_RATE, 24)
-  header.writeUInt32LE(SAMPLE_RATE * 2, 28)
-  header.writeUInt16LE(2, 32)
-  header.writeUInt16LE(16, 34)
-  header.write('data', 36)
-  header.writeUInt32LE(length * 2, 40)
-  writeFileSync(path, Buffer.concat([header, ...pieces.map((piece) => Buffer.from(piece.buffer, piece.byteOffset, piece.byteLength))]))
+  writeFileSync(path, wavOf(Buffer.concat(pieces.map((piece) => Buffer.from(piece.buffer, piece.byteOffset, piece.byteLength)))))
 }
 
 async function prepare(language, { parquet, clip }) {

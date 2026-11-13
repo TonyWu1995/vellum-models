@@ -17,9 +17,9 @@ const recordings = process.argv.slice(2)
 mkdirSync('data/own', { recursive: true })
 if (recordings.length) {
   for (const recording of recordings) {
-    const wav = `data/own/${basename(recording, extname(recording))}.pcm`
-    if (!existsSync(wav)) {
-      execFileSync(ffmpeg, ['-v', 'error', '-i', recording, '-ac', '1', '-ar', String(SAMPLE_RATE), '-f', 's16le', wav])
+    const output = `data/own/${basename(recording, extname(recording))}.pcm`
+    if (!existsSync(output)) {
+      execFileSync(ffmpeg, ['-v', 'error', '-i', recording, '-ac', '1', '-ar', String(SAMPLE_RATE), '-f', 's16le', output])
     }
   }
   process.exit(0)

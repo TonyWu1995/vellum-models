@@ -9,6 +9,7 @@ const DIRECTML = `directml:${resolve('onnx-directml.config')}`
 
 const inFolder = (model, name) => `data/models/${model.archive}/${name}`
 const firstOf = (model, names) => names.map((name) => inFolder(model, name)).find(existsSync)
+const floatsOf = (pcm) => Float32Array.from(new Int16Array(pcm), (value) => value / 32768)
 
 const SHERPA_MODELS = {
   'nemo-transducer': (model) => ({
@@ -51,15 +52,6 @@ const SHERPA_MODELS = {
     fireRedAsrCtc: { model: firstOf(model, ['model.int8.onnx', 'model.onnx']) },
     tokens: inFolder(model, 'tokens.txt')
   }),
-  'funasr-nano': (model) => ({
-    funasrNano: {
-      encoderAdaptor: inFolder(model, 'encoder_adaptor.int8.onnx'),
-      llm: inFolder(model, 'llm.int8.onnx'),
-      embedding: inFolder(model, 'embedding.int8.onnx'),
-      tokenizer: inFolder(model, 'Qwen3-0.6B')
-    },
-    tokens: ''
-  }),
   'sense-voice': (model, language) => ({
     senseVoice: { model: inFolder(model, model.file ?? 'model.int8.onnx'), language, useInverseTextNormalization: 1 },
     tokens: inFolder(model, 'tokens.txt')
@@ -87,7 +79,7 @@ function openSherpa(model, device, language) {
   return async (pcm) => {
     const stream = recognizer.createStream()
     if (model.kind === 'cohere-transcribe') stream.setOption('language', language)
-    const samples = Float32Array.from(new Int16Array(pcm), (value) => value / 32768)
+    const samples = floatsOf(pcm)
     stream.acceptWaveform({ sampleRate: 16000, samples })
     recognizer.decode(stream)
     const result = recognizer.getResult(stream)
@@ -113,7 +105,7 @@ async function openWhisper(model, device, language) {
   }
 }
 
-function wavOf(pcm) {
+export function wavOf(pcm) {
   const header = Buffer.alloc(44)
   header.write('RIFF', 0)
   header.writeUInt32LE(36 + pcm.byteLength, 4)
@@ -160,9 +152,11 @@ async function openTranscribeCpp(model, device, language) {
   })
   const session = loaded.createSession({ nThreads: THREADS })
   return async (pcm) => {
-    const samples = Float32Array.from(new Int16Array(pcm), (value) => value / 32768)
+    const samples = floatsOf(pcm)
     const result = await session.run(samples, model.language ? { language } : {})
-    const timing = result.words.length ? 'word' : result.tokens.some((token) => token.t1Ms > 0) ? 'token' : result.timestampKind
+    let timing = result.timestampKind
+    if (result.words.length) timing = 'word'
+    else if (result.tokens.some((token) => token.t1Ms > 0)) timing = 'token'
     return {
       text: result.text,
       timing,
@@ -192,7 +186,7 @@ export function pieces(pcm, maxSeconds) {
     },
     60
   )
-  const samples = Float32Array.from(new Int16Array(pcm), (value) => value / 32768)
+  const samples = floatsOf(pcm)
   const speech = []
   const take = () => {
     while (!vad.isEmpty()) {

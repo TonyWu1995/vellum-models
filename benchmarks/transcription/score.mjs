@@ -96,12 +96,9 @@ for (const set of ['chinese', 'english']) {
       const path = `data/transcripts/${model.id}-${device}-${set}.json`
       if (!existsSync(path)) continue
       const transcript = JSON.parse(readFileSync(path, 'utf8'))
-      if (transcript.skipped) {
-        lines.push(`| ${model.label} | ${device} | ${lengths.map(() => 'skipped').join(' | ')} | | | | |`)
-        continue
-      }
-      if (transcript.crashed) {
-        lines.push(`| ${model.label} | ${device} | ${lengths.map(() => 'crashed').join(' | ')} | | | | |`)
+      const status = ['skipped', 'crashed'].find((name) => transcript[name])
+      if (status) {
+        lines.push(`| ${model.label} | ${device} | ${lengths.map(() => status).join(' | ')} | | | | |`)
         continue
       }
       const { groups, rtf, timings } = score(set, transcript, clips)
