@@ -172,11 +172,12 @@ The same aligner also runs on onnxruntime, the library Vellum already uses for s
 | CrispASR, Vulkan, Q8 (985 MB) | whole 30–120 s | 0.046 (with loading) | per piece | not measured |
 | onnxruntime, DirectML, fp32 (3.7 GB) | whole 30–120 s | 0.033 | 8.9 s | 2.7 GB |
 | onnxruntime, DirectML, q4 (1.0 GB) | whole 30–120 s | 0.087 | 8.1 s | 9.7 GB |
-| **onnxruntime, DirectML, q4 (1.0 GB)** | **up to 30 s** | **0.036** | 7.4 s | **1.9 GB** |
+| **onnxruntime, DirectML, q4 (1.0 GB)** | **up to 30 s** | **0.036** (0.043 with `whisperMel.mjs`) | 7.4 s (11.9 s) | **1.9 GB** |
 | onnxruntime, CPU, q4 | whole 30–120 s | 0.222 | 5.5 s | 4.1 GB |
 | onnxruntime, CPU, q4 | up to 30 s | 0.133 | 5.6 s | 2.5 GB |
 
 - The q4 file is slow and large on whole 2-minute pieces on DirectML; in pieces of up to 30 s, as Vellum cuts speech, it is as fast as fp32 at a quarter of the download.
+- `onnxAligner.mjs` now makes its own audio features (`whisperMel.mjs`) and tokens (`@huggingface/tokenizers`) instead of transformers.js: every sentence time is the same, the run is about 15 % slower and loading about 4 s longer.
 - Peak memory is the process's resident memory; on DirectML the weights also sit in GPU memory.
 
 ### Not chosen

@@ -24,7 +24,7 @@
 | Qwen3-ForcedAligner q4 (onnxruntime, CPU) | reference | english | 68 | 0 | 0.03 s | 0.26 s | 60 % | 91 % | 0.209 | 5.5 s | 4103 MB |
 | Qwen3-ForcedAligner q4 (onnxruntime, CPU) | qwen3-asr-0.6b-tcpp-gpu | chinese | 118 | 0 | 0.04 s | 0.05 s | 96 % | 97 % | 0.228 | 5.5 s | 4528 MB |
 | Qwen3-ForcedAligner q4 (onnxruntime, CPU) | qwen3-asr-0.6b-tcpp-gpu | english | 68 | 0 | 0.03 s | 0.26 s | 60 % | 93 % | 0.208 | 5.5 s | 4528 MB |
-| Qwen3-ForcedAligner q4 (onnxruntime, DirectML), 30 s pieces | reference | chinese | 118 | 0 | 0.04 s | 0.05 s | 97 % | 98 % | 0.036 | 7.4 s | 1894 MB |
-| Qwen3-ForcedAligner q4 (onnxruntime, DirectML), 30 s pieces | reference | english | 68 | 0 | 0.03 s | 0.26 s | 63 % | 95 % | 0.036 | 7.4 s | 1894 MB |
+| Qwen3-ForcedAligner q4 (onnxruntime, DirectML), 30 s pieces | reference | chinese | 118 | 0 | 0.04 s | 0.05 s | 97 % | 98 % | 0.044 | 11.9 s | 1898 MB |
+| Qwen3-ForcedAligner q4 (onnxruntime, DirectML), 30 s pieces | reference | english | 68 | 0 | 0.03 s | 0.26 s | 63 % | 95 % | 0.041 | 11.9 s | 1898 MB |
 | Qwen3-ForcedAligner q4 (onnxruntime, CPU), 30 s pieces | reference | chinese | 118 | 0 | 0.04 s | 0.05 s | 97 % | 98 % | 0.133 | 5.6 s | 2534 MB |
 | Qwen3-ForcedAligner q4 (onnxruntime, CPU), 30 s pieces | reference | english | 68 | 0 | 0.03 s | 0.26 s | 63 % | 95 % | 0.134 | 5.6 s | 2534 MB |
