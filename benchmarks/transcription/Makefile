@@ -1,4 +1,4 @@
-all: install gpu download prepare transcribe crispasr score
+all: install gpu download prepare transcribe crispasr align score
 
 install:
 	npm install
@@ -18,10 +18,13 @@ transcribe:
 crispasr:
 	node crispasr.mjs
 
+align:
+	node align.mjs
+
 score:
 	node score.mjs
 
 clean:
 	rm -rf data node_modules
 
-.PHONY: all install gpu download prepare transcribe crispasr score clean
+.PHONY: all install gpu download prepare transcribe crispasr align score clean
