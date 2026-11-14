@@ -96,7 +96,8 @@ function report(file) {
 }
 
 mkdirSync('results', { recursive: true })
-for (const language of ['chinese', 'english']) {
+const languages = process.argv.length > 2 ? process.argv.slice(2) : ['chinese', 'english']
+for (const language of languages) {
   const files = readdirSync('data/voiceprints').filter((f) => f.startsWith(`${language}-`))
   const text = files.map(report).join('\n') + '\n'
   writeFileSync(`results/${language}.txt`, text)

@@ -107,3 +107,24 @@ CN-Celeb is harder than a meeting: the same person is compared across genres (an
 
 - The 3D-Speaker models were trained on about 200k speakers, which may include other parts of CN-Celeb, so their Chinese numbers may be a little optimistic.
 - The CN-Celeb download stalled, so 195 of its 200 eval speakers were used; a full run may differ slightly.
+
+## CAM++ on onnxruntime (2026-11-14)
+
+Vellum makes CAM++ voiceprints with `onnxruntime-node` and its own fbank (`fbank.mjs`, Kaldi fbank as sherpa-onnx computes it for 3D-Speaker models) instead of `sherpa-onnx-node` ([Vellum #53](https://github.com/TonyWu1995/Vellum/issues/53)).
+
+```sh
+node onnxruntime.mjs <campplus.onnx> <folder of wav files>...            # results/onnxruntime.txt
+node runtimes.mjs <campplus.onnx> <librispeech parquet> <onnxruntime folder>   # once per onnxruntime version
+node score.mjs librispeech                                                # results/librispeech.txt
+```
+
+- **fbank.mjs is exact**: on the same onnxruntime, its voiceprints equal sherpa-onnx's (similarity 1.0000 on 109 Chinese and 109 English clips of 1, 3 and 10 s; a pair's similarity changes by under 0.00001). It is also a little faster.
+- **The onnxruntime version changes the numbers**: onnxruntime 1.22 to 1.27 (sherpa-onnx 2.0.1 ships 1.24) give one result, 1.29 to 1.31 another, with or without graph optimizations. A clip's voiceprint differs between the two by a similarity of 0.77 at 1 s and 0.94 at 10 s at worst. sherpa-onnx in a process that loaded `onnxruntime-node` first uses that onnxruntime, so Vellum's saved voiceprints were already made on 1.31 and stay valid.
+- **Matching is as good on both**: LibriSpeech test-clean (English, 2620 clips, 40 speakers, every clip its own voiceprint, compared across chapters):
+
+| onnxruntime | EER | Missed at 0.6 | Wrong at 0.6 |
+| --- | --- | --- | --- |
+| 1.24.3 | 0.5% | 5.1% | 0.0% |
+| 1.31.1 | 0.5% | 5.0% | 0.0% |
+
+The 0.6 threshold holds. LibriSpeech is clean read speech, easier than CN-Celeb or a meeting, so only the comparison counts here.
