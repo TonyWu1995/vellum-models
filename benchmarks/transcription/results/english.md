@@ -24,3 +24,7 @@
 | Fun-ASR-Nano-2512 (transcribe.cpp, Q8, 30 s pieces) | gpu | 2.0% | 0.0% | 4.4% | 1.9% | 0.037 | 1.4 s | 500 MB | none |
 | FireRedASR2 AED (30 s pieces) | cpu | skipped | skipped | skipped | skipped | | | | |
 | FireRedASR2 AED (CrispASR, Q8) | gpu | 1.9% | 0.0% | 4.9% | 2.6% | 0.228 | not measured | not measured | none |
+| Qwen3-ASR 0.6B (transcribe.cpp, Q8, 30 s pieces) | gpu | 2.1% | 0.0% | 6.4% | 2.5% | 0.041 | 1.3 s | 570 MB | none |
+| Qwen3-ASR 1.7B (transcribe.cpp, Q8, 30 s pieces) | gpu | 2.2% | 0.0% | 5.9% | 2.1% | 0.055 | 2.6 s | 549 MB | none |
+| Qwen3-ASR 1.7B (transcribe.cpp, Q4_K_M, 30 s pieces) | gpu | 2.1% | 0.0% | 5.6% | 2.9% | 0.045 | 1.9 s | 573 MB | none |
+| Cohere Transcribe (transcribe.cpp, Q4_K_M, 30 s pieces) | gpu | 1.7% | 0.0% | 4.2% | 1.9% | 0.037 | 2.1 s | 726 MB | none |
