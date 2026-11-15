@@ -178,9 +178,25 @@ The same aligner also runs on onnxruntime, the library Vellum already uses for s
 - The q4 file is slow and large on whole 2-minute pieces on DirectML; in pieces of up to 30 s, as Vellum cuts speech, it is as fast as fp32 at a quarter of the download.
 - Peak memory is the process's resident memory; on DirectML the weights also sit in GPU memory.
 
+### Qwen3-ASR 1.7B and smaller files (2026-11-15)
+
+[Vellum #234](https://github.com/TonyWu1995/Vellum/issues/234) added Qwen3-ASR 1.7B and Cohere Transcribe. Each was measured as Q8_0 and Q4_K_M, all on transcribe.cpp (Vulkan) in pieces of up to 30 s, the way Vellum cuts speech:
+
+| Model | AISHELL-1 CER short / 60 s / 120 s | LibriSpeech WER short / 60 s / 120 s | RTF (Chinese) | Download |
+| --- | --- | --- | --- | --- |
+| Qwen3-ASR 0.6B, Q8_0 | 2.6 / 3.0 / 2.5 % | 2.1 / 6.4 / 2.5 % | 0.040 | 0.9 GB |
+| Qwen3-ASR 1.7B, Q8_0 | **1.6** / **2.4** / 2.7 % | 2.2 / 5.9 / 2.1 % | 0.048 | 2.2 GB |
+| Qwen3-ASR 1.7B, Q4_K_M | 2.2 / 3.2 / 2.6 % | 2.1 / 5.6 / 2.9 % | 0.052 | 1.3 GB |
+| Cohere Transcribe, Q8_0 | 4.6 / 4.0 / 4.5 % | **1.7** / **4.4** / **1.9** % | 0.040 | 2.4 GB |
+| Cohere Transcribe, Q4_K_M | 4.7 / 4.0 / 4.4 % | **1.7** / **4.2** / **1.9** % | 0.039 | 1.6 GB |
+
+- Qwen3-ASR 1.7B is the most accurate in Chinese, but only as Q8_0: as Q4_K_M it is no better than 0.6B. Vellum ships Q8_0.
+- Cohere Transcribe is as accurate as Q4_K_M as it is as Q8_0, and the best in English. Vellum ships Q4_K_M.
+- With 100 short clips and 3 long pieces per language, gaps under about 0.5 % are noise.
+- Cohere Transcribe does not detect the language: told nothing, it dropped or garbled the Chinese of a mixed clip, so Vellum offers it only English, Traditional and Simplified Chinese, English when none is chosen. The rows above were told the language.
+
 ### Not chosen
 
-- **Cohere Transcribe:** works in 30 s pieces, but less accurate in Chinese than Qwen3-ASR and Fun-ASR-Nano, still drops about 9 % of the real recording, and gives no times.
 - **FireRedASR2 AED:** the most accurate in Chinese, but transcribe.cpp and llama.cpp do not support it. On CrispASR (Vulkan encoder, CPU decoder) it takes 0.18 s per second of audio, 6–7× slower than Qwen3-ASR and Fun-ASR-Nano on transcribe.cpp, and would add a second library to Vellum; on sherpa-onnx's CPU 0.56 s. The other GPU builds (PyTorch, TensorRT-LLM) need Python or a server. Not added for now; worth another look if Vellum ends up on CrispASR.
 - **FireRedASR2 CTC:** 9.8 % English WER.
 - **Fun-ASR-Nano on sherpa-onnx 2.0.1:** produced no text, even on its own sample files; it was tested on transcribe.cpp instead.
