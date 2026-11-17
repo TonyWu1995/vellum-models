@@ -36,7 +36,23 @@ async function downloadArchive(name) {
   rmSync(archive)
 }
 
+const only = process.env.MODELS?.split(',')
 mkdirSync('data/models', { recursive: true })
+await download(CHINESE_URL, 'data/chinese.parquet')
+await download(ENGLISH_URL, 'data/english.parquet')
+await download(VAD_URL, 'data/models/silero_vad.onnx')
+for (const model of only ? models.filter(({ id }) => only.includes(id)) : models) {
+  if (model.archive) await downloadArchive(model.archive)
+  else if (model.repo) {
+    mkdirSync('data/models/transcribe-cpp', { recursive: true })
+    await download(`https://huggingface.co/${model.repo}/resolve/main/${model.gguf}`, `data/models/transcribe-cpp/${model.gguf}`)
+  } else if (model.gguf) {
+    mkdirSync(`data/models/${model.folder}`, { recursive: true })
+    for (const file of [model.gguf, model.mmproj]) await download(`${model.url}/${file}`, `data/models/${model.folder}/${file}`)
+  } else await download(model.url, `data/models/${model.id}.bin`)
+}
+// The aligners and CrispASR are only for `make crispasr` and `make align`
+if (only) process.exit(0)
 if (process.platform === 'win32' && !existsSync('data/crispasr')) {
   mkdirSync('data/crispasr')
   await download(CRISPASR_URL, 'data/crispasr/crispasr.zip')
@@ -49,17 +65,4 @@ const ONNX_ALIGNER = 'data/models/aligners/qwen3-forced-aligner-onnx'
 mkdirSync(`${ONNX_ALIGNER}/onnx`, { recursive: true })
 for (const file of ['config.json', 'preprocessor_config.json', 'tokenizer.json', 'tokenizer_config.json', 'onnx/model.onnx', 'onnx/model.onnx_data', 'onnx/model_q4.onnx']) {
   await download(`https://huggingface.co/valoomba/Qwen3-ForcedAligner-0.6B-ONNX/resolve/main/${file}`, `${ONNX_ALIGNER}/${file}`)
-}
-await download(CHINESE_URL, 'data/chinese.parquet')
-await download(ENGLISH_URL, 'data/english.parquet')
-await download(VAD_URL, 'data/models/silero_vad.onnx')
-for (const model of models) {
-  if (model.archive) await downloadArchive(model.archive)
-  else if (model.repo) {
-    mkdirSync('data/models/transcribe-cpp', { recursive: true })
-    await download(`https://huggingface.co/${model.repo}/resolve/main/${model.gguf}`, `data/models/transcribe-cpp/${model.gguf}`)
-  } else if (model.gguf) {
-    mkdirSync(`data/models/${model.folder}`, { recursive: true })
-    for (const file of [model.gguf, model.mmproj]) await download(`${model.url}/${file}`, `data/models/${model.folder}/${file}`)
-  } else await download(model.url, `data/models/${model.id}.bin`)
 }

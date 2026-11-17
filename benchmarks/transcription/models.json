@@ -135,7 +135,8 @@
     "repo": "handy-computer/Fun-ASR-Nano-2512-gguf",
     "pieceSeconds": 30,
     "devices": [
-      "gpu"
+      "gpu",
+      "cpu"
     ]
   },
   {
@@ -166,7 +167,8 @@
     "repo": "handy-computer/Qwen3-ASR-0.6B-gguf",
     "pieceSeconds": 30,
     "devices": [
-      "gpu"
+      "gpu",
+      "cpu"
     ]
   },
   {
@@ -177,7 +179,8 @@
     "repo": "handy-computer/Qwen3-ASR-1.7B-gguf",
     "pieceSeconds": 30,
     "devices": [
-      "gpu"
+      "gpu",
+      "cpu"
     ]
   },
   {
@@ -200,7 +203,8 @@
     "repo": "handy-computer/cohere-transcribe-03-2026-gguf",
     "pieceSeconds": 30,
     "devices": [
-      "gpu"
+      "gpu",
+      "cpu"
     ]
   }
 ]

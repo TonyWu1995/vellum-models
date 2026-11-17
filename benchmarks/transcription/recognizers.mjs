@@ -148,7 +148,7 @@ async function openLlama(model, device) {
 async function openTranscribeCpp(model, device, language) {
   const { TranscribeModel } = await import('transcribe-cpp')
   const loaded = await TranscribeModel.load(`data/models/transcribe-cpp/${model.gguf}`, {
-    backend: device === 'gpu' ? 'vulkan' : 'cpu'
+    backend: device === 'gpu' ? (process.platform === 'darwin' ? 'metal' : 'vulkan') : 'cpu'
   })
   const session = loaded.createSession({ nThreads: THREADS })
   return async (pcm) => {

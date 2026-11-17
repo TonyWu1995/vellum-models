@@ -34,26 +34,28 @@ Requirements: make, Node 24 or later, and `gh` signed in for `make gpu` (Windows
 make             # all the steps below, in order
 make install     # install the packages
 make gpu         # Windows: swap in Vellum's sherpa-onnx build with DirectML
-make download    # download the models and the Chinese and English clips
+make download    # download the models and the Chinese and English clips (`MODELS` downloads only those)
 make prepare     # pick the clips and make the long pieces
 make transcribe  # every model transcribes every clip, on each device
 make crispasr    # Windows: the CrispASR models
 make align       # Windows: word times from a forced aligner, on the long pieces
-make score       # write results/
+make score       # write results/ (`RESULTS=results/mac` writes elsewhere)
 make clean       # delete everything downloaded or made
 ```
 
 | File | Does |
 | --- | --- |
 | `models.json` | the models to test, their library (`kind`) and devices; `pieceSeconds` cuts speech into pieces first |
-| `recognizers.mjs` | opens a model on sherpa-onnx, whisper.cpp, llama.cpp or transcribe.cpp the way Vellum would |
+| `recognizers.mjs` | opens a model on sherpa-onnx, whisper.cpp, llama.cpp or transcribe.cpp the way Vellum would; `gpu` is Metal on a Mac, else Vulkan |
 | `transcribe.mjs` | writes `data/transcripts/<model>-<device>-<language>.json`, skipping what is already there; `MODELS`, `DEVICES` and `SETS` pick a subset |
-| `score.mjs` | writes `results/chinese.md` and `results/english.md` |
+| `score.mjs` | writes `chinese.md` and `english.md` into `RESULTS` (`results` by default) |
 | `crispasr.mjs` | Windows: runs the `crispasr` models on [CrispASR](https://github.com/CrispStrobe/CrispASR)'s command line (it has no Node package), one process per language; its RTF is CrispASR's own timing, without loading, and memory is not measured |
 | `align.mjs` | runs Qwen3-ForcedAligner (on CrispASR and onnxruntime) on the long pieces with the reference text and with each model's transcript, and writes `results/alignment.md` |
 | `onnxAligner.mjs` | Qwen3-ForcedAligner on onnxruntime-node: tokenizer and audio features from transformers.js, one pass of the model, Qwen's repair of times that go backwards |
 | `normalize.mjs` | the text normalization `score.mjs` and `align.mjs` share |
 | `own.mjs` | `node own.mjs <recording>...` converts your own recordings, then `node own.mjs` transcribes them into `data/own/`, which stays on your computer |
+
+npm 11 skips install scripts it has not been allowed to run; if `make prepare` finds no ffmpeg, run `node node_modules/ffmpeg-static/install.js`.
 
 A full run downloads about 25 GB of models and takes most of a day, mostly the slow sherpa-onnx runs.
 
@@ -195,6 +197,32 @@ The same aligner also runs on onnxruntime, the library Vellum already uses for s
 - With 100 short clips and 3 long pieces per language, gaps under about 0.5 % are noise.
 - Cohere Transcribe does not detect the language: told nothing, it dropped or garbled the Chinese of a mixed clip, so Vellum offers it only English, Traditional and Simplified Chinese, English when none is chosen. The rows above were told the language.
 
+### Metal on a Mac (2026-11-17)
+
+[Vellum #171](https://github.com/TonyWu1995/Vellum/issues/171) runs the transcribe.cpp models Vellum ships on a Mac. Apple M1 Pro (8 performance and 2 efficiency cores, 14-core GPU, 32 GB), macOS 26.7, `transcribe-cpp` 0.4.2, 4 threads, one model at a time, so these speeds are clean:
+
+```sh
+MODELS=sense-voice-tcpp,parakeet-tdt-v3-tcpp,breeze-asr-25-tcpp,qwen3-asr-0.6b-tcpp-30s,qwen3-asr-1.7b-tcpp-30s,funasr-nano-tcpp-30s,cohere-transcribe-q4-tcpp-30s
+MODELS=$MODELS make download prepare
+MODELS=$MODELS DEVICES=gpu,cpu make transcribe
+RESULTS=results/mac make score
+```
+
+| Model | AISHELL-1 CER short / 60 s / 120 s, CPU → Metal | RTF (Chinese) CPU → Metal | RTF (English) CPU → Metal | Peak memory CPU → Metal |
+| --- | --- | --- | --- | --- |
+| SenseVoice Small, Q8 | 3.3 / 3.8 / 4.2 % → same | 0.040 → **0.015** | 0.038 → **0.014** | 1.1 → 0.9 GB |
+| Parakeet TDT v3, Q8 (English only) | LibriSpeech WER 1.8 / 16.4 / 2.9 % → 1.8 / 16.4 / 2.4 % | — | 0.054 → **0.018** | 2.0 → 0.6 GB |
+| Breeze-ASR-25, Q8 | 5.0 / 4.2 / 4.4 % → 5.2 / 4.2 / 4.4 % | 0.853 → **0.176** | 0.687 → **0.146** | 2.3 → 0.7 GB |
+| Fun-ASR-Nano-2512, Q8, 30 s pieces | 2.3 / 2.8 / 2.1 % → 2.2 / 2.8 / 2.1 % | 0.064 → **0.037** | 0.089 → **0.045** | 1.6 → 0.7 GB |
+| Qwen3-ASR 0.6B, Q8, 30 s pieces | 2.6 / 2.8 / 2.6 % → 2.6 / 2.8 / 2.5 % | 0.089 → **0.042** | 0.102 → **0.048** | 1.8 → 0.7 GB |
+| Qwen3-ASR 1.7B, Q8, 30 s pieces | 1.5 / 2.4 / 2.7 % → 1.6 / 2.4 / 2.7 % | 0.179 → **0.063** | 0.205 → **0.077** | 3.1 → 0.7 GB |
+| Cohere Transcribe, Q4_K_M, 30 s pieces | 4.6 / 4.0 / 4.4 % → 4.7 / 4.0 / 4.4 % | 0.196 → **0.051** | 0.202 → **0.049** | 3.2 → 0.5 GB |
+
+- Every model runs on Metal and writes the same text as on the CPU: the error rates differ by at most 0.5 %, which is noise here (English too, in [`results/mac/`](results/mac)).
+- Metal is 1.7–4.8× faster than the CPU and needs a quarter to a half of the memory. The slowest models gain most: Breeze-ASR-25 takes 51 min for an hour of Chinese on the CPU and 11 min on Metal.
+- The "30 s pieces" rows gain less, because loading the speech detector again for every clip runs on the CPU either way.
+- Against the RTX 2070 SUPER on Vulkan, Metal on the M1 Pro is about as fast for SenseVoice and Parakeet and up to 2.3× slower for Breeze-ASR-25.
+
 ### Not chosen
 
 - **FireRedASR2 AED:** the most accurate in Chinese, but transcribe.cpp and llama.cpp do not support it. On CrispASR (Vulkan encoder, CPU decoder) it takes 0.18 s per second of audio, 6–7× slower than Qwen3-ASR and Fun-ASR-Nano on transcribe.cpp, and would add a second library to Vellum; on sherpa-onnx's CPU 0.56 s. The other GPU builds (PyTorch, TensorRT-LLM) need Python or a server. Not added for now; worth another look if Vellum ends up on CrispASR.
@@ -203,7 +231,7 @@ The same aligner also runs on onnxruntime, the library Vellum already uses for s
 
 ## Caveats
 
-- One machine, one GPU, Windows only; Metal on Mac was not measured.
+- One Windows machine with one GPU, and one Mac (Metal, transcribe.cpp models only).
 - The speeds in the main tables were measured while other runs shared the machine; the clean speeds are the ones to compare.
 - AISHELL-1 is read speech in a quiet room; a meeting is harder. The real recording shows completeness, not accuracy.
 - FireRedASR2 AED in 30 s pieces was run on Chinese only.
