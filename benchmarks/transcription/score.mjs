@@ -3,6 +3,8 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'no
 import models from './models.json' with { type: 'json' }
 import { NORMALIZE } from './normalize.mjs'
 
+const RESULTS = process.env.RESULTS ?? 'results'
+
 function editDistance(a, b) {
   let previous = Array.from({ length: b.length + 1 }, (_, i) => i)
   for (let i = 1; i <= a.length; i += 1) {
@@ -36,7 +38,7 @@ function score(set, transcript, clips) {
   return { groups, rtf: busy / 1000 / audio, timings }
 }
 
-mkdirSync('results', { recursive: true })
+mkdirSync(RESULTS, { recursive: true })
 for (const set of ['chinese', 'english']) {
   const clips = JSON.parse(readFileSync(`data/${set}/clips.json`, 'utf8'))
   const lengths = [...new Set(clips.map(({ length }) => length))]
@@ -65,6 +67,6 @@ for (const set of ['chinese', 'english']) {
       )
     }
   }
-  writeFileSync(`results/${set}.md`, `${lines.join('\n')}\n`)
+  writeFileSync(`${RESULTS}/${set}.md`, `${lines.join('\n')}\n`)
   console.log(`\n${set}\n${lines.join('\n')}`)
 }
