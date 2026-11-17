@@ -1,9 +1,10 @@
 // Qwen3-ForcedAligner on onnxruntime-node, ported from Qwen's qwen_asr/inference/qwen3_forced_aligner.py:
 // each word is followed by two <timestamp> tokens, one pass of the model classifies every <timestamp> into
 // an 80 ms slot, and slots that go backwards are repaired the way Qwen's fix_timestamp does
-import { AutoTokenizer, WhisperFeatureExtractor } from '@huggingface/transformers'
+import { Tokenizer } from '@huggingface/tokenizers'
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { whisperMel } from './whisperMel.mjs'
 
 const require = createRequire(import.meta.url)
 
@@ -78,24 +79,21 @@ export function repaired(slots) {
 
 export async function openOnnxAligner(folder, file, provider) {
   const ort = require('onnxruntime-node')
-  const config = JSON.parse(readFileSync(`${folder}/config.json`, 'utf8'))
-  const extractor = new WhisperFeatureExtractor(JSON.parse(readFileSync(`${folder}/preprocessor_config.json`, 'utf8')))
-  // transformers.js stops at 30 s of features; Qwen's processor keeps the whole audio
-  extractor.config.nb_max_frames = Number.MAX_SAFE_INTEGER
-  const tokenizer = await AutoTokenizer.from_pretrained(folder, { local_files_only: true })
+  const read = (name) => JSON.parse(readFileSync(`${folder}/${name}`, 'utf8'))
+  const config = read('config.json')
+  const tokenizer = new Tokenizer(read('tokenizer.json'), read('tokenizer_config.json'))
   const session = await ort.InferenceSession.create(`${folder}/onnx/${file}`, { executionProviders: [provider] })
 
   return async (samples, text) => {
     const list = words(text)
     if (!list.length) return []
-    const { input_features: features } = await extractor(samples, { max_length: samples.length })
-    const frames = features.dims[2]
+    const { data, frames } = whisperMel(samples)
     const prompt = `<|audio_start|>${'<|audio_pad|>'.repeat(audioTokens(frames))}<|audio_end|>${list.join('<timestamp><timestamp>')}<timestamp><timestamp>`
-    const ids = tokenizer.encode(prompt, { add_special_tokens: false })
+    const { ids } = tokenizer.encode(prompt, { add_special_tokens: false })
     const feeds = {
       input_ids: new ort.Tensor('int64', BigInt64Array.from(ids, BigInt), [1, ids.length]),
       attention_mask: new ort.Tensor('int64', new BigInt64Array(ids.length).fill(1n), [1, ids.length]),
-      input_features: new ort.Tensor('float32', features.data, features.dims),
+      input_features: new ort.Tensor('float32', data, [1, 128, frames]),
       feature_attention_mask: new ort.Tensor('int32', new Int32Array(frames).fill(1), [1, frames])
     }
     const { logits } = await session.run(feeds)
