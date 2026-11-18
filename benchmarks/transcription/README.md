@@ -33,7 +33,7 @@ Requirements: make, Node 24 or later, and `gh` signed in for `make gpu` (Windows
 ```sh
 make             # all the steps below, in order
 make install     # install the packages
-make gpu         # Windows: swap in Vellum's sherpa-onnx build with DirectML
+make gpu         # Windows: swap in Vellum's sherpa-onnx build with DirectML (its release was deleted with Vellum #243, so this no longer works)
 make download    # download the models and the Chinese and English clips (`MODELS` downloads only those)
 make prepare     # pick the clips and make the long pieces
 make transcribe  # every model transcribes every clip, on each device
